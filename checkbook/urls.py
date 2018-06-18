@@ -19,3 +19,5 @@ urlpatterns = [
     path('category/<int:pk>/', views.CategoryUpdate.as_view(), name='category-detail'),
     path('category/<int:pk>/delete/', CategoryDelete.as_view(), name='category-delete'),
 ]
+
+#this is a comment to test git update
