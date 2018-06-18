@@ -1,0 +1,23 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+    <h2>.fml finance .categories</h2>
+
+    {#<a href="{% url 'category-add' %}">add new</a>#}
+    <a href="{% url 'category-add' %}">add new</a>
+
+    {% if category_list %}
+    <ul>
+
+      {% for category in category_list %}
+      <li>
+        <a href="{{ category.get_absolute_url }}">{{ category.name }}</a> ({{ category.budget }} : {{category.frequency}})...
+          <a href="{% url 'category-delete' category.id %}">delete</a>
+      </li>
+      {% endfor %}
+
+    </ul>
+    {% else %}
+      <p>There are no catgories, get your shit together.</p>
+    {% endif %}
+{% endblock %}

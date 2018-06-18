@@ -1,0 +1,15 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+  <h1>Title: {{ check.name }}</h1>
+
+  <p><strong>date:</strong> {{ check.dater }}</p>
+  <p><strong>name:</strong> {{ check.name }}</p>
+  <p><strong>type:</strong> {{ check.type }}</p>
+  <p><strong>category:</strong> <a href="{% url 'category-detail' check.category.pk %}">{{ check.category }}</a></p>
+  <p><strong>amount:</strong> {{ check.amount }}</p>
+  <p><strong>is cleared:</strong> {{ check.cleared }}</p>
+
+{% endblock %}
+
+<a href="{% url 'check-update' %}">update transaction</a>

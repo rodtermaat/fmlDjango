@@ -1,0 +1,18 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+<h2>. fml finance .dashboard</h2>
+
+  <p><strong>fml Finance</strong>, an old school concept built with cutting edge technology.</p>
+
+  <p>Your Finances are as follows - fml:</p>
+  <ul>
+    <li><strong>Transactions:</strong> {{ num_checks }}</li>
+    <li><strong>Lifetime Balance:</strong> {{ tot_bal.amount__sum }}</li>
+    <li><strong>Today Balance:</strong> {{ today_bal.amount__sum }}</li>
+  </ul>
+
+  <p>You have visited this page {{ num_visits }}{% if num_visits == 1 %} time{% else %} times. {% endif %}
+    You've got some issues buddy.</p>
+
+{% endblock %}
