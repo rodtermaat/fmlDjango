@@ -21,14 +21,41 @@ from django.utils.html import conditional_escape as esc
 from django.utils.safestring import mark_safe
 from datetime import date, datetime
 
+#index
+from django.db.models import Max
+
+#pie
+from django.http import JsonResponse
+
+#rest framework
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
 def index(request):
     """
     View function for home page of site.
     """
     # Generate counts of some of the main objects
     num_checks=Check.objects.all().count()
-    tot_bal=Check.objects.all().aggregate(Sum('amount'))
+    forecast_date = Check.objects.all().aggregate(Max('dater'))
+    forecast_bal=Check.objects.all().aggregate(Sum('amount'))
     today_bal=Check.objects.filter(dater__lte=date.today()).aggregate(Sum('amount'))
+    cat_data = Check.objects.filter(type='DR').values_list('category__name').annotate(cat_total = Sum('amount')*-1).order_by()
+
+    cat_label=[]
+    cat_value=[]
+    for i in cat_data:
+        cat_label.append((i[0]))
+        cat_value.append(i[1])
+    #    cat_value.append(y)
+        #cat_label.append(str(x.category__name))
+    #    cat_value.append(x.cat_total)
+    str(cat_label).replace("'", '"')
+
+    #cat_data = Check.objects.annotate(cat_total=Sum("amount"))
     # Number of visits to this view, as counted in the session variable.
     num_visits=request.session.get('num_visits', 0)
     request.session['num_visits'] = num_visits+1
@@ -37,9 +64,35 @@ def index(request):
     return render(
         request,
         'checkbook/index.html',
-        context={'num_checks':num_checks,'tot_bal':tot_bal, 'today_bal':today_bal,
-            'num_visits':num_visits},
+        context={'num_checks':num_checks,'forecast_bal':forecast_bal,
+            'today_bal':today_bal,'num_visits':num_visits,
+            'forecast_date':forecast_date, 'today':date.today(),
+            'cat_data':cat_data, 'cat_label':cat_label, 'cat_value':cat_value},
     )
+
+def cat_pie(request, *args, **kwargs):
+    data = {
+        "Housing": 1031,
+        "Utilities": 129,
+        "Living Expenses": 311,
+    }
+    return JsonResponse(data)
+
+class CatData(APIView):
+
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request, format=None):
+        cat_sum = Check.objects.filter(category__name="Housing").aggregate(Sum('amount'))
+        labels = ["Category", "Amount"]
+        default_items = [cat_sum]
+        data = {
+                "labels": labels,
+                "default": default_items,
+        }
+        return Response(data)
+
 
 def checkbookList(request):
     check_list = Check.objects.all()
@@ -52,6 +105,11 @@ def checkbookList(request):
         balance += chk.amount
         chk.balance = balance
 
+        if chk.cleared:
+            chk.cleared = '\u221A'
+        else:
+            chk.cleared = '-'
+
     paginator = Paginator(check_list, 20)
     try:
         checks = paginator.page(page)
@@ -62,12 +120,80 @@ def checkbookList(request):
 
     return render(request, 'checkbook/checkbook.html', {'checks': checks})
 
+def checkbookMonth(request, aYear=date.today().year , aMonth=date.today().month):
+
+    #set up month and year navigation
+    curYear = int(aYear)
+    curMonth = int(aMonth)
+    CalendarFromMonth = datetime(aYear, aMonth, 1)
+    CalendarToMonth = datetime(aYear, aMonth, monthrange(aYear, aMonth)[1])
+
+    PreviousYear = curYear
+    PreviousMonth = curMonth - 1
+    if PreviousMonth == 0:
+        PreviousMonth = 12
+        PreviousYear = curYear - 1
+    NextYear = curYear
+    NextMonth = curMonth + 1
+    if NextMonth == 13:
+        NextMonth = 1
+        NextYear = curYear + 1
+
+
+    #get all objects, add balance to checkbook in realtime
+    check_list = Check.objects.all()
+    balance = 0
+    #for chk in checks:
+    for chk in check_list:
+        balance += chk.amount
+        chk.balance = balance
+
+        if chk.cleared:
+            chk.cleared = '\u221A'
+        else:
+            chk.cleared = '-'
+
+    #only return data for the month in question.  This being
+    #the current month upon startup and allow navigation by monthrange
+    monthdata = check_list.filter(dater__gte=CalendarFromMonth, dater__lte=CalendarToMonth)
+    #CheckEntries = Check.objects.filter(dater__gte=CalendarFromMonth, dater__lte=CalendarToMonth)
+
+    #active_not_deleted = everyone.filter(is_deleted=False)
+    #active_is_deleted = everyone.filter(is_deleted=True)
+    #return render(request, 'checkbook/checkbook.html', {'checks': checks})
+
+    return render(request, 'checkbook/checkbookNEW.html', {'checks' : monthdata,
+                                                       'Month' : curMonth,
+                                                       'MonthName' : named_month(curMonth),
+                                                       'Year' : curYear,
+                                                       'PreviousMonth' : PreviousMonth,
+                                                       'PreviousMonthName' : named_month(PreviousMonth),
+                                                       'PreviousYear' : PreviousYear,
+                                                       'NextMonth' : NextMonth,
+                                                       'NextMonthName' : named_month(NextMonth),
+                                                       'NextYear' : NextYear,
+                                                   })
+
+
+
+
+# generate bills, or reoccurring check CheckEntries
+from .forms import AddBills
+def addCheckBills(request):
+
+    if request.method == 'POST':
+        pass
+    else:
+        form = AddBills()
+
+    return render(request, 'checkbook/bills.html', {'form' : form})
+
 
 from django.views import generic
 
 class CheckListView(generic.ListView):
     model = Check
-    paginate_by = 10
+    paginate_by = 25
 
 class CheckDetailView(generic.DetailView):
     model = Check

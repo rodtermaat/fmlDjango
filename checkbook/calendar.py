@@ -21,7 +21,7 @@ class CheckbookCalendar(HTMLCalendar):
                 for check in self.checks[day]:
                     body.append('<a href="%s">' % check.get_absolute_url())
                     body.append(esc(check.name))
-                    #body.append(esc(check.type))
+                    body.append(': ')
                     #body.append(esc(check.category))
                     body.append(esc(check.amount))
                     #body.append(esc(check.cleared))

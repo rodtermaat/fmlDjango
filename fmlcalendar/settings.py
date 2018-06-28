@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'checkbook',
     'django_addanother',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [

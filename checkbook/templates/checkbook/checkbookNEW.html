@@ -1,0 +1,54 @@
+{% extends "base_generic.html" %}
+
+{% block extrahead %}
+  {{ form.media }}
+{% endblock %}
+
+{% block content %}
+    <h2>.fml finance .checkbook</h2>
+
+    <a href="{% url 'check-add' %}">add new</a>
+
+    {% if checks %}
+
+    <table class="greyGridTable">
+      <thead>
+        <tr>
+          <th>date</th>
+          <th>cleared</th>
+          <th>description</th>
+          <th>category</th>
+          <th>amt</th>
+          <th>bal</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tfoot>
+        <tr>
+          <td>date</td>
+          <td>cleared</td>
+          <td>description</td>
+          <td>category</td>
+          <td>amt</td>
+          <td>bal</td>
+          <td></td>
+        </tr>
+      </tfoot>
+        {% for check in checks %}
+        <tr>
+          <td>{{ check.dater|date:'Y M d' }}</td>
+          <td>{{check.cleared}}</td>
+          <td><a href="{{ check.get_absolute_url }}"> {{ check.name }}</a></td>
+          <td>{{check.category}}</td>
+          <td>{{check.amount}}</td>
+          <td>{{check.balance}}</td>
+          <td><a href="{% url 'check-delete' check.id %}">delete</a></td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    {% else %}
+      <p>There are no checks in the checkbook.</p>
+    {% endif %}
+
+{% endblock %}

@@ -1,17 +1,117 @@
 {% extends "base_generic.html" %}
 
+<script>
+{% block jquery %}
+var end_point = '/api/chart/data/'
+var defaultData = []
+var labels = [];
+$.ajax({
+  method: "GET"
+  url: end_point
+  console.log("in ajax call")
+  success: function(data){
+    labels = data.labels
+    defaultData = data.default
+    setChart()
+  },
+  error: function(error_data){
+    console.log("error")
+    console.log(error_data)
+  }
+})
+
+function setChart(){
+var ctx = document.getElementById("myChart").getContext('2d');
+var myChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: ["User", "Blue", "Yellow", "Green", "Purple", "Orange"],
+        datasets: [{
+            label: '# of Votes',
+            data: [1, 23, 2, 3, 12, 2],
+            borderColor: [
+                'rgba(255,99,132,1)',
+                'rgba(54, 162, 235, 1)',
+                'rgba(255, 206, 86, 1)',
+                'rgba(75, 192, 192, 1)',
+                'rgba(153, 102, 255, 1)',
+                'rgba(255, 159, 64, 1)'
+            ],
+            borderWidth: 1
+        }]
+    },
+    options: {
+        scales: {
+            yAxes: [{
+                ticks: {
+                    beginAtZero:true
+                }
+            }]
+        }
+    }
+});
+
+{% endblock %}
+</script>
+
 {% block content %}
-<h2>. fml finance .dashboard</h2>
+<div class-"header">
+  <h2>. fml finance .dashboard</h2>
+  <!-- this is a comment -->
+</div>
+<div class="jumbotron">
+  <div class="container">
+    <div class="row">
+      <div class="col-sm-4" style="padding-right:20px; border-right: 2px solid #ccc;">
+        <h4>Todays Balance:</h4>
+        <h5>{{ today }}</h5>
+        <h5>${{ today_bal.amount__sum }}</h5>
+      </div>
+      <div class="col-sm-4" style="padding-right:20px; border-right: 2px solid #ccc;">
+        <h4>Forecasted Balance as of:</h4>
+        <h5>{{ forecast_date.dater__max }}</h5>
+        <h5>${{ forecast_bal.amount__sum }}</h5>
+      </div>
+      <div class="col-sm-4">
+        <h4>Upcoming Bills:</h4>
 
-  <p><strong>fml Finance</strong>, an old school concept built with cutting edge technology.</p>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-12" style="padding-right:20px;">
+      <hr />
+      <h4>Category Spending:</h4>
 
-  <p>Your Finances are as follows - fml:</p>
-  <ul>
-    <li><strong>Transactions:</strong> {{ num_checks }}</li>
-    <li><strong>Lifetime Balance:</strong> {{ tot_bal.amount__sum }}</li>
-    <li><strong>Today Balance:</strong> {{ today_bal.amount__sum }}</li>
-  </ul>
-
+        <canvas id="myChart" width="800" height="350"></canvas>
+        <script>
+        var ctx = document.getElementById("myChart").getContext('2d');
+        var myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: {{ cat_label|safe }},
+                datasets: [{
+                    label: '$ of spending',
+                    data: {{ cat_value }},
+                }]
+            },
+            options: {
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero:true
+                        }
+                    }]
+                }
+            }
+        });
+        </script>
+        <i>...focusing on lowering your spending on 1 or more categories can
+        significantly improve your
+        financial outlook</i>
+    </div>
+  </div>
+</div>
+  <br>
   <p>You have visited this page {{ num_visits }}{% if num_visits == 1 %} time{% else %} times. {% endif %}
     You've got some issues buddy.</p>
 
