@@ -5,12 +5,24 @@
 {% endblock %}
 
 {% block content %}
-    <h2>.fml finance .checkbook</h2>
+    <h2>.fml finance .checkbook <small>{{fromMonth}} -- {{toMonth}}</small></h2>
 
+
+    <table width="97%">
+      <tr>
+        <td width="30%" align="left">
+          &lt;&lt; <a href="{% url 'checkbook-monthNav' PreviousYear PreviousMonth%}">{{PreviousMonthName}} {{PreviousYear}}</a>
+        </td>
+        <td width="30%" align="center"><a href="{% url 'checkbook-month' %}"">{{MonthName}} {{Year}}</a></td>
+        <td width="30%" align="right">
+          <a href="{% url 'checkbook-monthNav' NextYear NextMonth%}">{{NextMonthName}} {{NextYear}}</a> &gt;&gt;
+        </td>
+      </tr>
+    </table>
+    <br/>
     <a href="{% url 'check-add' %}">add new</a>
 
     {% if checks %}
-
     <table class="greyGridTable">
       <thead>
         <tr>
@@ -35,18 +47,19 @@
         </tr>
       </tfoot>
         {% for check in checks %}
-        <tr>
-          <td>{{ check.dater|date:'Y M d' }}</td>
-          <td>{{check.cleared}}</td>
-          <td><a href="{{ check.get_absolute_url }}"> {{ check.name }}</a></td>
-          <td>{{check.category}}</td>
-          <td>{{check.amount}}</td>
-          <td>{{check.balance}}</td>
-          <td><a href="{% url 'check-delete' check.id %}">delete</a></td>
-        </tr>
+          {% if check.dater >= fromMonth and check.dater <= toMonth %}
+          <tr>
+            <td>{{ check.dater|date:'Y M d' }}</td>
+            <td>{{check.cleared}}</td>
+            <td><a href="{{ check.get_absolute_url }}"> {{ check.name }}</a></td>
+            <td>{{check.category}}</td>
+            <td>{{check.amount}}</td>
+            <td>{{check.balance}}</td>
+            <td><a href="{% url 'check-delete' check.id %}">delete</a></td>
+          </tr>
+          {% endif %}
         {% endfor %}
     </table>
-
     {% else %}
       <p>There are no checks in the checkbook.</p>
     {% endif %}

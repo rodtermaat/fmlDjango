@@ -125,8 +125,8 @@ def checkbookMonth(request, aYear=date.today().year , aMonth=date.today().month)
     #set up month and year navigation
     curYear = int(aYear)
     curMonth = int(aMonth)
-    CalendarFromMonth = datetime(aYear, aMonth, 1)
-    CalendarToMonth = datetime(aYear, aMonth, monthrange(aYear, aMonth)[1])
+    fromMonth = date(aYear, aMonth, 1)
+    toMonth = date(aYear, aMonth, monthrange(aYear, aMonth)[1])
 
     PreviousYear = curYear
     PreviousMonth = curMonth - 1
@@ -153,16 +153,7 @@ def checkbookMonth(request, aYear=date.today().year , aMonth=date.today().month)
         else:
             chk.cleared = '-'
 
-    #only return data for the month in question.  This being
-    #the current month upon startup and allow navigation by monthrange
-    monthdata = check_list.filter(dater__gte=CalendarFromMonth, dater__lte=CalendarToMonth)
-    #CheckEntries = Check.objects.filter(dater__gte=CalendarFromMonth, dater__lte=CalendarToMonth)
-
-    #active_not_deleted = everyone.filter(is_deleted=False)
-    #active_is_deleted = everyone.filter(is_deleted=True)
-    #return render(request, 'checkbook/checkbook.html', {'checks': checks})
-
-    return render(request, 'checkbook/checkbookNEW.html', {'checks' : monthdata,
+    return render(request, 'checkbook/checkbookNEW.html', {'checks' : check_list,
                                                        'Month' : curMonth,
                                                        'MonthName' : named_month(curMonth),
                                                        'Year' : curYear,
@@ -172,6 +163,8 @@ def checkbookMonth(request, aYear=date.today().year , aMonth=date.today().month)
                                                        'NextMonth' : NextMonth,
                                                        'NextMonthName' : named_month(NextMonth),
                                                        'NextYear' : NextYear,
+                                                       'fromMonth' : fromMonth,
+                                                       'toMonth' :toMonth
                                                    })
 
 
@@ -203,7 +196,7 @@ class CheckForm(forms.ModelForm):
         model = Check
         fields = ['dater', 'type', 'category', 'name', 'amount', 'cleared']
         widgets = {
-            'dater': forms.TextInput(attrs={'class':'datepicker'}),
+            'dater': forms.TextInput(attrs={'class':'datepicker', 'autocomplete': 'off',}),
             'category': AddAnotherWidgetWrapper(
                 forms.Select,
                 reverse_lazy('category-cpu'),)
@@ -230,7 +223,7 @@ class CheckDelete(DeleteView):
 # --------------------------------------------
 class CategoryListView(generic.ListView):
     model = Category
-    paginate_by = 10
+    paginate_by = 20
 
 class CategoryDetailView(generic.DetailView):
     model = Category
@@ -320,32 +313,3 @@ def fmlCalendar(request, aYear=date.today().year , aMonth=date.today().month):
                                                        'NextMonthName' : named_month(NextMonth),
                                                        'NextYear' : NextYear,
                                                    })
-
-# def fmlCalendarNav(request, aYear=date.today().year, aMonth=date.today().month):
-#     cal = calendar.HTMLCalendar(calendar.MONDAY)
-#     curYear = int(aYear)
-#     curMonth = int(aMonth)
-#     fmlCal = cal.formatmonth(curYear,curMonth)
-#
-#     PreviousYear = curYear
-#     PreviousMonth = curMonth - 1
-#     if PreviousMonth == 0:
-#         PreviousMonth = 12
-#         PreviousYear = curYear - 1
-#     NextYear = curYear
-#     NextMonth = curMonth + 1
-#     if NextMonth == 13:
-#         NextMonth = 1
-#         NextYear = curYear + 1
-#
-#     return render(request, 'checkbook/calendar.html', {'fmlCalendar' : mark_safe(fmlCal),
-#                                                        'Month' : curMonth,
-#                                                        'MonthName' : named_month(curMonth),
-#                                                        'Year' : curYear,
-#                                                        'PreviousMonth' : PreviousMonth,
-#                                                        'PreviousMonthName' : named_month(PreviousMonth),
-#                                                        'PreviousYear' : PreviousYear,
-#                                                        'NextMonth' : NextMonth,
-#                                                        'NextMonthName' : named_month(NextMonth),
-#                                                        'NextYear' : NextYear,
-#                                                    })
